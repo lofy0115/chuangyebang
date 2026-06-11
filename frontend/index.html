@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="创业帮">
+    <meta name="description" content="从消费者抱怨中发现创业机会，基于精益创业和商业模式画布设计商业模型">
+    <link rel="manifest" href="/manifest.json">
+    <title>创业帮 - 从消费者抱怨到商业模式</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #0f0f23, #1a1a3e); color: #fff; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 40px 0 20px; }
+        header h1 { font-size: 2.5em; background: linear-gradient(90deg, #00d4ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        header p { color: #888; font-size: 1.1em; }
+        .tag-line { display: inline-block; background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin: 10px 0; }
+        .search-section { background: #1a1a3e; border-radius: 20px; padding: 30px; margin: 20px 0; }
+        .analyze-mode { display: flex; gap: 15px; margin-bottom: 20px; justify-content: center; flex-wrap: wrap; }
+        .mode-btn { padding: 10px 25px; border-radius: 25px; border: 2px solid #333; background: transparent; color: #888; cursor: pointer; transition: all 0.3s; font-size: 0.9em; }
+        .mode-btn.active { border-color: #00d4ff; color: #00d4ff; background: rgba(0,212,255,0.1); }
+        .mode-desc { text-align: center; color: #666; font-size: 0.8em; margin-bottom: 15px; }
+        .search-box { display: flex; gap: 10px; max-width: 600px; margin: 0 auto; flex-wrap: wrap; }
+        .search-box input { flex: 1; min-width: 200px; padding: 15px 20px; border-radius: 25px; border: 2px solid #333; background: #252550; color: #fff; font-size: 1em; outline: none; }
+        .search-box input:focus { border-color: #00d4ff; }
+        .search-box button { padding: 15px 30px; border-radius: 25px; border: none; background: linear-gradient(135deg, #00d4ff, #0099cc); color: #fff; font-size: 1em; cursor: pointer; font-weight: bold; }
+        .search-box button:disabled { opacity: 0.5; cursor: not-allowed; }
+        .data-sources-strip { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 20px; padding-top: 20px; border-top: 1px solid #333; }
+        .source-badge { background: #252550; padding: 5px 12px; border-radius: 12px; font-size: 0.75em; color: #666; display: flex; align-items: center; gap: 5px; }
+        .source-badge.active { color: #00ff88; border: 1px solid rgba(0,255,136,0.3); }
+        .source-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: #444; }
+        .source-badge.active .dot { background: #00ff88; box-shadow: 0 0 5px #00ff88; }
+        .tabs { display: flex; justify-content: center; gap: 15px; margin: 30px 0; flex-wrap: wrap; }
+        .tab { padding: 10px 25px; border-radius: 20px; cursor: pointer; background: #1a1a3e; color: #888; transition: all 0.3s; }
+        .tab.active { background: linear-gradient(135deg, #00d4ff, #0099cc); color: #000; font-weight: bold; }
+        .results { display: none; }
+        .results.active { display: block; }
+        .card { background: #1a1a3e; border-radius: 15px; padding: 25px; margin: 20px 0; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .card h3 { color: #00d4ff; }
+        .badge { background: #00ff88; color: #000; padding: 3px 10px; border-radius: 10px; font-size: 0.75em; font-weight: bold; }
+        .loading { text-align: center; padding: 40px; }
+        .loading .spinner { width: 40px; height: 40px; border: 3px solid #333; border-top-color: #00d4ff; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 15px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .complaint-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        .complaint-item { background: #252550; padding: 15px; border-radius: 10px; }
+        .complaint-item .type { font-weight: bold; margin-bottom: 5px; }
+        .complaint-item .bar { height: 8px; background: #333; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+        .complaint-item .bar-fill { height: 100%; background: linear-gradient(90deg, #00d4ff, #00ff88); border-radius: 4px; }
+        .complaint-item .stats { display: flex; justify-content: space-between; font-size: 0.85em; color: #888; }
+        .complaint-item .percentage { color: #00d4ff; font-weight: bold; }
+        .source-coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        .source-item { background: #252550; padding: 12px; border-radius: 10px; text-align: center; }
+        .source-item .source-name { font-size: 0.8em; color: #888; margin-bottom: 5px; }
+        .source-item .source-count { font-size: 1.5em; font-weight: bold; color: #00d4ff; }
+        .source-item .source-pct { font-size: 0.75em; color: #666; }
+        .source-item .source-sentiment { font-size: 0.75em; margin-top: 3px; }
+        .source-item .source-sentiment.positive { color: #00ff88; }
+        .source-item .source-sentiment.negative { color: #ff4444; }
+        .source-item .source-sentiment.neutral { color: #888; }
+        .segment-container { display: flex; flex-wrap: wrap; gap: 15px; }
+        .segment-tag { background: #252550; padding: 15px 20px; border-radius: 15px; min-width: 180px; flex: 1; }
+        .segment-tag .seg-name { font-weight: bold; color: #00d4ff; margin-bottom: 8px; }
+        .segment-tag .seg-pct { font-size: 2em; font-weight: bold; color: #fff; }
+        .segment-tag .seg-label { font-size: 0.8em; color: #888; }
+        .canvas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        @media (max-width: 768px) { .canvas-grid { grid-template-columns: 1fr; } }
+        .canvas-cell { background: #252550; padding: 15px; border-radius: 10px; }
+        .canvas-cell h4 { color: #00d4ff; font-size: 0.8em; margin-bottom: 8px; text-transform: uppercase; }
+        .canvas-cell li { font-size: 0.85em; color: #aaa; margin: 3px 0; }
+        .canvas-cell p { font-size: 0.85em; color: #aaa; }
+        .score { display: inline-block; background: linear-gradient(135deg, #00d4ff, #00ff88); color: #000; padding: 5px 15px; border-radius: 15px; font-weight: bold; }
+        .needs-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .need-tag { background: #252550; padding: 8px 15px; border-radius: 20px; font-size: 0.85em; display: flex; align-items: center; gap: 8px; }
+        .need-tag .priority { background: #00d4ff; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; }
+        .hidden { display: none; }
+        .error-msg { background: #ff4444; color: #fff; padding: 15px; border-radius: 10px; margin: 20px 0; text-align: center; }
+        .sources-note { color: #666; font-size: 0.8em; margin-top: 15px; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 创业帮</h1>
+            <p>从消费者抱怨中发现新价值需求，落地到可执行的商业模式</p>
+            <div class="tag-line">📡 13个数据源 | 🤖 NLP智能分析 | 📊 商业模式画布</div>
+        </header>
+
+        <div class="search-section">
+            <div class="analyze-mode">
+                <button class="mode-btn active" onclick="setMode('standard')">⚡ 标准分析</button>
+                <button class="mode-btn" onclick="setMode('deep')">🔬 深度分析</button>
+            </div>
+            <div class="mode-desc" id="mode-desc">⚡快速响应，使用模拟数据验证流程</div>
+
+            <div class="search-box">
+                <input type="text" id="keyword" placeholder="输入行业关键词，如：母婴、美妆、智能家居" value="母婴">
+                <button id="analyze-btn" onclick="analyze()">开始分析</button>
+            </div>
+
+            <div class="data-sources-strip" id="sources-strip">
+                <span class="source-badge" id="src-taobao"><span class="dot"></span>淘宝</span>
+                <span class="source-badge" id="src-jd"><span class="dot"></span>京东</span>
+                <span class="source-badge" id="src-pinduoduo"><span class="dot"></span>拼多多</span>
+                <span class="source-badge" id="src-weibo"><span class="dot"></span>微博</span>
+                <span class="source-badge" id="src-xiaohongshu"><span class="dot"></span>小红书</span>
+                <span class="source-badge" id="src-zhihu"><span class="dot"></span>知乎</span>
+                <span class="source-badge" id="src-douyin"><span class="dot"></span>抖音</span>
+                <span class="source-badge" id="src-baidu_tieba"><span class="dot"></span>贴吧</span>
+                <span class="source-badge" id="src-hupu"><span class="dot"></span>虎扑</span>
+                <span class="source-badge" id="src-heimao"><span class="dot"></span>黑猫投诉</span>
+                <span class="source-badge" id="src-12315"><span class="dot"></span>12315</span>
+            </div>
+        </div>
+
+        <div id="loading" class="loading hidden">
+            <div class="spinner"></div>
+            <p>正在从多源收集数据并分析...</p>
+        </div>
+
+        <div id="error-msg" class="error-msg hidden"></div>
+
+        <div id="results" class="hidden">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('analysis')">📊 消费者洞察</div>
+                <div class="tab" onclick="switchTab('sources')">📡 数据源覆盖</div>
+                <div class="tab" onclick="switchTab('lean')">🎯 精益画布</div>
+                <div class="tab" onclick="switchTab('bmc')">📋 商业模式画布</div>
+            </div>
+
+            <div id="analysis" class="results active">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 抱怨类型分布</h3>
+                        <span class="badge" id="total-records">0条数据</span>
+                    </div>
+                    <div id="complaint-dist" class="complaint-list"></div>
+                </div>
+                <div class="card">
+                    <h3>💎 价值需求优先级</h3>
+                    <div id="value-needs" class="needs-list"></div>
+                </div>
+                <div class="card">
+                    <h3>👥 客户细分</h3>
+                    <div id="customer-segments" class="segment-container"></div>
+                </div>
+            </div>
+
+            <div id="sources" class="results">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📡 数据源覆盖统计</h3>
+                        <span class="badge" id="sources-count">0个数据源</span>
+                    </div>
+                    <div id="source-coverage" class="source-coverage"></div>
+                    <p class="sources-note">权重配置：投诉平台(12%) > 电商平台(15%) > 社交媒体(8-10%) > 论坛社区(2-5%)</p>
+                </div>
+            </div>
+
+            <div id="lean" class="results">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🎯 精益画布</h3>
+                        <span id="lean-score" class="score">0分</span>
+                    </div>
+                    <div id="lean-canvas" class="canvas-grid"></div>
+                </div>
+            </div>
+
+            <div id="bmc" class="results">
+                <div class="card">
+                    <h3>📋 商业模式画布</h3>
+                    <div id="bmc-canvas" class="canvas-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Auto-detect API host for mobile compatibility
+        // API is on port 8000, frontend is on port 3000
+        const API_BASE = (window.location.protocol === 'file:' ? 'http://' + window.location.hostname + ':8000' : window.location.origin.replace(':3000', ':8000')) + "/api";
+        let currentMode = "standard";
+
+        async function fetchSources() {
+            try {
+                const res = await fetch(API_BASE + "/data-sources");
+                if (!res.ok) return;
+                const data = await res.json();
+                if (data.sources) {
+                    data.sources.forEach(function(src) {
+                        var badge = document.getElementById("src-" + src.id);
+                        if (badge && src.status === "active") {
+                            badge.classList.add("active");
+                        }
+                    });
+                }
+            } catch(e) {}
+        }
+
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll(".mode-btn").forEach(function(b) { b.classList.remove("active"); });
+            event.target.classList.add("active");
+            var desc = document.getElementById("mode-desc");
+            if (mode === "standard") {
+                desc.textContent = "⚡ 快速响应，使用模拟数据验证流程";
+            } else {
+                desc.textContent = "🔬 从10+数据源深度收集，数据更全面准确（响应较慢）";
+            }
+        }
+
+        async function analyze() {
+            var keyword = document.getElementById("keyword").value.trim();
+            if (!keyword) return;
+
+            document.getElementById("loading").classList.remove("hidden");
+            document.getElementById("results").classList.add("hidden");
+            document.getElementById("error-msg").classList.add("hidden");
+            document.getElementById("analyze-btn").disabled = true;
+
+            try {
+                var endpoint = currentMode === "deep" ? "/analyze/deep" : "/analyze";
+                var [analysisRes, canvasRes] = await Promise.all([
+                    fetch(API_BASE + endpoint, {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({keyword: keyword})
+                    }),
+                    fetch(API_BASE + "/canvas/generate", {
+                        method: "POST",
+                        headers: {"Content-Type": "application/json"},
+                        body: JSON.stringify({keyword: keyword, canvas_type: "lean"})
+                    })
+                ]);
+
+                if (!analysisRes.ok) throw new Error("分析请求失败");
+
+                var analysis = await analysisRes.json();
+                var canvas = await canvasRes.json();
+
+                renderResults(analysis, canvas);
+
+                document.getElementById("loading").classList.add("hidden");
+                document.getElementById("results").classList.remove("hidden");
+            } catch(e) {
+                document.getElementById("loading").classList.add("hidden");
+                var errDiv = document.getElementById("error-msg");
+                errDiv.textContent = "分析失败：" + e.message + "（请确保API服务已启动：uvicorn app.main:app --reload）";
+                errDiv.classList.remove("hidden");
+            } finally {
+                document.getElementById("analyze-btn").disabled = false;
+            }
+        }
+
+        function renderResults(analysis, canvas) {
+            document.getElementById("total-records").textContent = (analysis.total_records || 0) + "条数据";
+
+            // 抱怨分布
+            var dist = document.getElementById("complaint-dist");
+            dist.innerHTML = "";
+            var complaints = analysis.complaint_distribution || [];
+            complaints.forEach(function(item) {
+                dist.innerHTML += "<div class=\"complaint-item\">" +
+                    "<div class=\"type\">" + item.type + "</div>" +
+                    "<div class=\"bar\"><div class=\"bar-fill\" style=\"width:" + item.percentage + "%\"></div></div>" +
+                    "<div class=\"stats\"><span>" + item.count + "条</span><span class=\"percentage\">" + item.percentage + "%</span></div>" +
+                    "</div>";
+            });
+
+            // 价值需求
+            var needs = document.getElementById("value-needs");
+            needs.innerHTML = "";
+            var needsList = analysis.top_value_needs || [];
+            needsList.slice(0, 8).forEach(function(item) {
+                needs.innerHTML += "<div class=\"need-tag\"><span>" + item.need + "</span><span class=\"priority\">" + item.priority + "</span></div>";
+            });
+
+            // 客户细分
+            var seg = document.getElementById("customer-segments");
+            seg.innerHTML = "";
+            var segments = analysis.customer_segments || [];
+            segments.forEach(function(item) {
+                seg.innerHTML += "<div class=\"segment-tag\">" +
+                    "<div class=\"seg-name\">" + item.segment + "</div>" +
+                    "<div class=\"seg-pct\">" + (item.percentage || 0) + "%</div>" +
+                    "<div class=\"seg-label\">" + (item.count || 0) + "条记录</div>" +
+                    "</div>";
+            });
+
+            // 数据源覆盖
+            var srcCov = document.getElementById("source-coverage");
+            srcCov.innerHTML = "";
+            var srcData = analysis.source_coverage || {};
+            var srcKeys = Object.keys(srcData);
+            document.getElementById("sources-count").textContent = srcKeys.length + "个数据源";
+            srcKeys.forEach(function(source) {
+                var data = srcData[source];
+                var sentimentClass = data.avg_sentiment > 0 ? "positive" : data.avg_sentiment < 0 ? "negative" : "neutral";
+                var sentimentSign = data.avg_sentiment > 0 ? "+" : "";
+                srcCov.innerHTML += "<div class=\"source-item\">" +
+                    "<div class=\"source-name\">" + source + "</div>" +
+                    "<div class=\"source-count\">" + data.count + "</div>" +
+                    "<div class=\"source-pct\">" + data.percentage + "%</div>" +
+                    "<div class=\"source-sentiment " + sentimentClass + "\">" + sentimentSign + data.avg_sentiment + "</div>" +
+                    "</div>";
+            });
+
+            // 精益画布
+            var lc = canvas.canvas || {};
+            document.getElementById("lean-score").textContent = (canvas.completeness_score || 0) + "分";
+
+            var problemItems = (lc.problem || []).map(function(p) { return "<li>" + p.title + " (" + p.percentage + "%)</li>"; }).join("");
+            var solutionItems = (lc.solution || []).map(function(s) { return "<li>" + s.title + "</li>"; }).join("");
+            var advantageItems = (lc.unfair_advantage || []).map(function(a) { return "<li>" + a + "</li>"; }).join("");
+            var metricItems = (lc.key_metrics || []).map(function(m) { return "<li>" + m + "</li>"; }).join("");
+            var channelItems = (lc.channels || []).map(function(c) { return "<li>" + c + "</li>"; }).join("");
+            var revenueItems = (lc.revenue_streams || []).map(function(r) { return "<li>" + r + "</li>"; }).join("");
+
+            document.getElementById("lean-canvas").innerHTML =
+                "<div class=\"canvas-cell\"><h4>问题 Problem</h4><ul>" + problemItems + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>解决方案 Solution</h4><ul>" + solutionItems + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>独特价值主张 UVP</h4><p>" + (lc.unique_value_proposition || "-") + "</p></div>" +
+                "<div class=\"canvas-cell\"><h4>门槛优势</h4><ul>" + advantageItems + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>关键指标</h4><ul>" + metricItems + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>渠道</h4><ul>" + channelItems + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>成本结构</h4><p>" + (lc.cost_structure || "-") + "</p></div>" +
+                "<div class=\"canvas-cell\"><h4>收入来源</h4><ul>" + revenueItems + "</ul></div>";
+
+            // 商业模式画布
+            var bmcSeg = (lc.customer_segments || []).map(function(c) { return "<li>" + c + "</li>"; }).join("");
+            var bmcVal = (lc.value_propositions || []).map(function(v) { return "<li>" + v + "</li>"; }).join("");
+            var bmcRel = (lc.customer_relationships || []).map(function(r) { return "<li>" + r + "</li>"; }).join("");
+            var bmcRes = (lc.key_resources || []).map(function(r) { return "<li>" + r + "</li>"; }).join("");
+            var bmcAct = (lc.key_activities || []).map(function(a) { return "<li>" + a + "</li>"; }).join("");
+            var bmcPar = (lc.key_partners || []).map(function(p) { return "<li>" + p + "</li>"; }).join("");
+
+            document.getElementById("bmc-canvas").innerHTML =
+                "<div class=\"canvas-cell\"><h4>客户细分</h4><ul>" + bmcSeg + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>价值主张</h4><ul>" + bmcVal + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>渠道</h4><ul>" + channelItems + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>客户关系</h4><ul>" + bmcRel + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>收入来源</h4><ul>" + revenueItems + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>核心资源</h4><ul>" + bmcRes + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>关键活动</h4><ul>" + bmcAct + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>合作伙伴</h4><ul>" + bmcPar + "</ul></div>" +
+                "<div class=\"canvas-cell\"><h4>成本结构</h4><p>" + (lc.cost_structure || "-") + "</p></div>";
+        }
+
+        function switchTab(tab) {
+            document.querySelectorAll(".tab").forEach(function(t) { t.classList.remove("active"); });
+            document.querySelectorAll(".results").forEach(function(r) { r.classList.remove("active"); });
+            event.target.classList.add("active");
+            document.getElementById(tab).classList.add("active");
+        }
+
+        fetchSources();
+
+        // PWA: Register Service Worker
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js')
+                    .then(function(reg) { console.log('SW registered'); })
+                    .catch(function(err) { console.log('SW registration failed:', err); });
+            });
+        }
+    </script>
+</body>
+</html>

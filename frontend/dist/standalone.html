@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="theme-color" content="#6366f1">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="创业帮">
+    <meta name="description" content="从消费者抱怨中发现创业机会">
+    <title>创业帮 - 精益创业商业分析</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #0f0f23, #1a1a3e); color: #fff; min-height: 100vh; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        header { text-align: center; padding: 40px 0 20px; }
+        header h1 { font-size: 2.5em; background: linear-gradient(90deg, #00d4ff, #00ff88); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 10px; }
+        header p { color: #888; font-size: 1.1em; }
+        .tag-line { display: inline-block; background: rgba(0,212,255,0.1); border: 1px solid rgba(0,212,255,0.3); padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin: 10px 0; }
+        .offline-badge { background: #f59e0b; color: #000; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; margin: 10px 0; display: inline-block; }
+        .search-section { background: #1a1a3e; border-radius: 20px; padding: 30px; margin: 20px 0; }
+        .search-box { display: flex; gap: 10px; max-width: 600px; margin: 0 auto; flex-wrap: wrap; }
+        .search-box input { flex: 1; min-width: 200px; padding: 15px 20px; border-radius: 25px; border: 2px solid #333; background: #252550; color: #fff; font-size: 1em; outline: none; }
+        .search-box input:focus { border-color: #00d4ff; }
+        .search-box button { padding: 15px 30px; border-radius: 25px; border: none; background: linear-gradient(135deg, #00d4ff, #0099cc); color: #fff; font-size: 1em; cursor: pointer; font-weight: bold; }
+        .industry-chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 15px; }
+        .chip { background: #252550; padding: 8px 16px; border-radius: 20px; font-size: 0.85em; cursor: pointer; transition: all 0.3s; color: #888; }
+        .chip:hover, .chip.active { background: rgba(0,212,255,0.2); color: #00d4ff; border: 1px solid rgba(0,212,255,0.3); }
+        .tabs { display: flex; justify-content: center; gap: 15px; margin: 30px 0; flex-wrap: wrap; }
+        .tab { padding: 10px 25px; border-radius: 20px; cursor: pointer; background: #1a1a3e; color: #888; transition: all 0.3s; }
+        .tab.active { background: linear-gradient(135deg, #00d4ff, #0099cc); color: #000; font-weight: bold; }
+        .results { display: none; }
+        .results.active { display: block; }
+        .card { background: #1a1a3e; border-radius: 15px; padding: 25px; margin: 20px 0; }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px; }
+        .card h3 { color: #00d4ff; }
+        .badge { background: #00ff88; color: #000; padding: 3px 10px; border-radius: 10px; font-size: 0.75em; font-weight: bold; }
+        .complaint-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 15px; }
+        .complaint-item { background: #252550; padding: 15px; border-radius: 10px; }
+        .complaint-item .type { font-weight: bold; margin-bottom: 5px; }
+        .complaint-item .bar { height: 8px; background: #333; border-radius: 4px; margin: 8px 0; overflow: hidden; }
+        .complaint-item .bar-fill { height: 100%; background: linear-gradient(90deg, #00d4ff, #00ff88); border-radius: 4px; }
+        .complaint-item .stats { display: flex; justify-content: space-between; font-size: 0.85em; color: #888; }
+        .complaint-item .percentage { color: #00d4ff; font-weight: bold; }
+        .source-coverage { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; }
+        .source-item { background: #252550; padding: 12px; border-radius: 10px; text-align: center; }
+        .source-item .source-name { font-size: 0.8em; color: #888; margin-bottom: 5px; }
+        .source-item .source-count { font-size: 1.5em; font-weight: bold; color: #00d4ff; }
+        .source-item .source-pct { font-size: 0.75em; color: #666; }
+        .source-item .source-sentiment { font-size: 0.75em; margin-top: 3px; }
+        .source-item .source-sentiment.positive { color: #00ff88; }
+        .source-item .source-sentiment.negative { color: #ff4444; }
+        .segment-container { display: flex; flex-wrap: wrap; gap: 15px; }
+        .segment-tag { background: #252550; padding: 15px 20px; border-radius: 15px; min-width: 180px; flex: 1; }
+        .segment-tag .seg-name { font-weight: bold; color: #00d4ff; margin-bottom: 8px; }
+        .segment-tag .seg-pct { font-size: 2em; font-weight: bold; color: #fff; }
+        .segment-tag .seg-label { font-size: 0.8em; color: #888; }
+        .canvas-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        @media (max-width: 768px) { .canvas-grid { grid-template-columns: 1fr; } }
+        .canvas-cell { background: #252550; padding: 15px; border-radius: 10px; }
+        .canvas-cell h4 { color: #00d4ff; font-size: 0.8em; margin-bottom: 8px; text-transform: uppercase; }
+        .canvas-cell li { font-size: 0.85em; color: #aaa; margin: 3px 0; }
+        .canvas-cell p { font-size: 0.85em; color: #aaa; }
+        .score { display: inline-block; background: linear-gradient(135deg, #00d4ff, #00ff88); color: #000; padding: 5px 15px; border-radius: 15px; font-weight: bold; }
+        .needs-list { display: flex; flex-wrap: wrap; gap: 10px; }
+        .need-tag { background: #252550; padding: 8px 15px; border-radius: 20px; font-size: 0.85em; display: flex; align-items: center; gap: 8px; }
+        .need-tag .priority { background: #00d4ff; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.75em; font-weight: bold; }
+        .hidden { display: none; }
+        .profit-models { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
+        .model-card { background: #252550; padding: 20px; border-radius: 15px; border: 2px solid transparent; transition: all 0.3s; cursor: pointer; }
+        .model-card:hover { border-color: #00d4ff; }
+        .model-card .model-name { font-size: 1.1em; font-weight: bold; color: #00d4ff; margin-bottom: 8px; }
+        .model-card .model-desc { font-size: 0.85em; color: #888; margin-bottom: 10px; }
+        .model-card .model-score { display: inline-block; background: rgba(0,212,255,0.2); color: #00d4ff; padding: 3px 10px; border-radius: 10px; font-size: 0.8em; }
+        .model-card .model-reason { font-size: 0.8em; color: #aaa; margin-top: 8px; font-style: italic; }
+        .economics { background: #252550; padding: 20px; border-radius: 15px; margin-top: 20px; }
+        .economics h4 { color: #00d4ff; margin-bottom: 15px; }
+        .econ-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; text-align: center; }
+        .econ-item .econ-value { font-size: 1.5em; font-weight: bold; color: #fff; }
+        .econ-item .econ-label { font-size: 0.75em; color: #888; }
+        .econ-item .econ-value.good { color: #00ff88; }
+        .econ-item .econ-value.warn { color: #f59e0b; }
+   </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 创业帮</h1>
+            <p>从消费者抱怨中发现新价值需求，落地到可执行的商业模式</p>
+            <div class="tag-line">📡 13个数据源 | 🤖 NLP智能分析 | 📊 商业模式画布</div>
+            <div class="offline-badge">📱 离线演示模式（无需网络）</div>
+        </header>
+
+        <div class="search-section">
+            <div class="search-box">
+                <input type="text" id="keyword" placeholder="输入行业关键词" value="母婴">
+                <button onclick="analyze()">开始分析</button>
+            </div>
+            <div class="industry-chips" id="industry-chips">
+                <div class="chip active" onclick="selectIndustry('母婴')">👶母婴</div>
+                <div class="chip" onclick="selectIndustry('美妆')">💄 美妆</div>
+                <div class="chip" onclick="selectIndustry('智能家居')">🏠 智能家居</div>
+                <div class="chip" onclick="selectIndustry('新能源汽车')">🚗 新能源汽车</div>
+                <div class="chip" onclick="selectIndustry('食品')">🍎 食品</div>
+               <div class="chip" onclick="selectIndustry('SaaS')">💻 SaaS</div>
+            </div>
+        </div>
+
+        <div id="results" class="hidden">
+            <div class="tabs">
+                <div class="tab active" onclick="switchTab('analysis')">📊 消费者洞察</div>
+                <div class="tab" onclick="switchTab('sources')">📡 数据源覆盖</div>
+                <div class="tab" onclick="switchTab('lean')">🎯 精益画布</div>
+                <div class="tab" onclick="switchTab('profit')">💰 变现模式</div>
+            </div>
+
+            <div id="analysis" class="results active">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📊 抱怨类型分布</h3>
+                        <span class="badge" id="total-records">0条数据</span>
+                    </div>
+                    <div id="complaint-dist" class="complaint-list"></div>
+                </div>
+                <div class="card">
+                    <h3>💎 价值需求优先级</h3>
+                    <div id="value-needs" class="needs-list"></div>
+                </div>
+                <div class="card">
+                    <h3>👥 客户细分</h3>
+                    <div id="customer-segments" class="segment-container"></div>
+                </div>
+            </div>
+
+            <div id="sources" class="results">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>📡 数据源覆盖统计</h3>
+                        <span class="badge" id="sources-count">0个数据源</span>
+                    </div>
+                    <div id="source-coverage" class="source-coverage"></div>
+                    <p style="color:#666;font-size:0.8em;margin-top:15px;text-align:center">权重：投诉平台(12%) > 电商(15%) > 社交媒体(8-10%) > 论坛(2-5%)</p>
+                </div>
+            </div>
+
+            <div id="lean" class="results">
+                <div class="card">
+                    <div class="card-header">
+                        <h3>🎯 精益画布</h3>
+                        <span id="lean-score" class="score">0分</span>
+                    </div>
+                    <div id="lean-canvas" class="canvas-grid"></div>
+                </div>
+               <div class="card">
+                    <h3>📋 商业模式画布</h3>
+                    <div id="bmc-canvas" class="canvas-grid"></div>
+                </div>
+            </div>
+
+            <div id="profit" class="results">
+                <div class="card">
+                    <h3>💰 推荐变现模式</h3>
+                    <div id="profit-models" class="profit-models"></div>
+                </div>
+                <div class="card economics">
+                    <h4>📈 单位经济模型估算（订阅制示例）</h4>
+                    <div class="econ-grid">
+                        <div class="econ-item"><div class="econ-value" id="econ-mrr">-</div><div class="econ-label">月收入(MRR)</div></div>
+                        <div class="econ-item"><div class="econ-value" id="econ-arr">-</div><div class="econ-label">年收入(ARR)</div></div>
+                        <div class="econ-item"><div class="econ-value good" id="econ-ltv">-</div><div class="econ-label">客户生命周期价值</div></div>
+                        <div class="econ-item"><div class="econ-value" id="econ-cac">-</div><div class="econ-label">获客成本(CAC)</div></div>
+                        <div class="econ-item"><div class="econ-value" id="econ-ratio">-</div><div class="econ-label">LTV/CAC</div></div>
+                        <div class="econ-item"><div class="econ-value warn" id="econ-breakeven">-</div><div class="econ-label">盈亏平衡客户数</div></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    // 内置行业模拟数据
+    const MOCK_DATA = {
+        "母婴": {
+            total_records: 1280,
+            complaint_distribution: [
+                {type: "质量缺陷", count: 334, percentage: 26},
+                {type: "价格问题", count: 307, percentage: 24},
+                {type: "性能问题", count: 179, percentage: 14},
+                {type: "服务体验", count: 154, percentage: 12},
+                {type: "功能缺失", count: 154, percentage: 12},
+                {type: "安全隐患", count: 102, percentage: 8},
+                {type: "交付问题", count: 51, percentage: 4}
+            ],
+            top_value_needs: [
+                {need: "高品质", priority: 92}, {need: "高性价比", priority: 85},
+                {need: "安全无刺激", priority: 78}, {need: "便捷服务", priority: 72},
+                {need: "专业咨询", priority: 65}, {need: "快速配送", priority: 58}
+            ],
+            customer_segments: [
+                {segment: "品质优先型", percentage: 42, count: 538, needs: ["质量", "安全", "品牌"]},
+                {segment: "价格敏感型", percentage: 35, count: 448, needs: ["便宜", "优惠", "划算"]},
+                {segment: "新手妈妈型", percentage: 15, count: 192, needs: ["教程", "咨询", "指导"]},
+                {segment: "囤货型", percentage: 8, count: 102, needs: ["套装", "折扣", "耐用"]}
+            ],
+            source_coverage: {
+                "淘宝": {count: 245, percentage: 19, avg_sentiment: -0.8},
+                "京东": {count: 198, percentage: 15, avg_sentiment: -0.5},
+                "黑猫投诉": {count: 186, percentage: 15, avg_sentiment: -2.1},
+                "小红书": {count: 156, percentage: 12, avg_sentiment: -0.3},
+                "微博": {count: 142, percentage: 11, avg_sentiment: -0.6},
+                "12315": {count: 138, percentage: 11, avg_sentiment: -1.9},
+                "拼多多": {count: 98, percentage: 8, avg_sentiment: -1.2},
+                "知乎": {count: 67, percentage: 5, avg_sentiment: 0.2},
+                "抖音": {count: 50, percentage: 4, avg_sentiment: -0.4}
+            }
+        },
+        "美妆": {
+            total_records: 980,
+            complaint_distribution: [
+                {type: "质量缺陷", count: 245, percentage: 25},
+                {type: "服务体验", count: 196, percentage: 20},
+                {type: "价格问题", count: 176, percentage: 18},
+                {type: "功能缺失", count: 147, percentage: 15},
+                {type: "安全隐患", count: 98, percentage: 10},
+                {type: "性能问题", count: 78, percentage: 8},
+                {type: "交付问题", count: 39, percentage: 4}
+            ],
+            top_value_needs: [
+                {need: "功效明显", priority: 95}, {need: "成分安全", priority: 88},
+                {need: "高性价比", priority: 82}, {need: "使用便捷", priority: 75},
+                {need: "包装精美", priority: 68}, {need: "快速到货", priority: 60}
+            ],
+            customer_segments: [
+                {segment: "成分党", percentage: 38, count: 372, needs: ["成分", "功效", "安全"]},
+                {segment: "品牌导向型", percentage: 32, count: 314, needs: ["品牌", "档次", "口碑"]},
+                {segment: "学生平价型", percentage: 20, count: 196, needs: ["便宜", "够用", "好看"]},
+                {segment: "礼品型", percentage: 10, count: 98, needs: ["包装", "档次", "品牌"]}
+            ],
+            source_coverage: {
+                "小红书": {count: 225, percentage: 23, avg_sentiment: -0.4},
+                "淘宝": {count: 196, percentage: 20, avg_sentiment: -0.7},
+                "微博": {count: 156, percentage: 16, avg_sentiment: -0.5},
+                "京东": {count: 142, percentage: 14, avg_sentiment: -0.3},
+                "黑猫投诉": {count: 118, percentage: 12, avg_sentiment: -2.0},
+                "抖音": {count: 88, percentage: 9, avg_sentiment: -0.2},
+                "知乎": {count: 55, percentage: 6, avg_sentiment: 0.3}
+            }
+        },
+        "智能家居": {
+            total_records: 756,
+            complaint_distribution: [
+                {type: "性能问题", count: 204, percentage: 27},
+                {type: "功能缺失", count: 170, percentage: 22},
+                {type: "安全隐患", count: 132, percentage: 17},
+                {type: "价格问题", count: 114, percentage: 15},
+                {type: "质量缺陷", count: 76, percentage: 10},
+                {type: "服务体验", count: 45, percentage: 6},
+                {type: "交付问题", count: 15, percentage: 2}
+            ],
+            top_value_needs: [
+                {need: "稳定可靠", priority: 94}, {need: "智能联动", priority: 88},
+                {need: "简单易用", priority: 82}, {need: "性价比", priority: 75},
+                {need: "隐私安全", priority: 70}, {need: "远程控制", priority: 63}
+            ],
+            customer_segments: [
+                {segment: "科技爱好者", percentage: 40, count: 302, needs: ["功能", "联动", "新潮"]},
+                {segment: "实用性用户", percentage: 35, count: 265, needs: ["稳定", "易用", "实用"]},
+                {segment: "价格敏感型", percentage: 15, count: 113, needs: ["便宜", "够用", "省电"]},
+                {segment: "智能家庭用户", percentage: 10, count: 76, needs: ["全屋", "联动", "整体方案"]}
+            ],
+            source_coverage: {
+                "知乎": {count: 156, percentage: 21, avg_sentiment: -0.5},
+                "京东": {count: 142, percentage: 19, avg_sentiment: -0.8},
+                "微博": {count: 120, percentage: 16, avg_sentiment: -0.6},
+                "淘宝": {count: 112, percentage: 15, avg_sentiment: -1.0},
+                "贴吧": {count: 98, percentage: 13, avg_sentiment: -1.3},
+                "黑猫投诉": {count: 76, percentage: 10, avg_sentiment: -2.2},
+                "抖音": {count: 52, percentage: 7, avg_sentiment: -0.3}
+            }
+        },
+        "新能源汽车": {
+            total_records: 634,
+            complaint_distribution: [
+                {type: "性能问题", count: 178, percentage: 28},
+                {type: "安全隐患", count: 133, percentage: 21},
+                {type: "服务体验", count: 108, percentage: 17},
+                {type: "价格问题", count: 89, percentage: 14},
+                {type: "功能缺失", count: 63, percentage: 10},
+                {type: "质量缺陷", count: 38, percentage: 6},
+                {type: "交付问题", count: 25, percentage: 4}
+            ],
+            top_value_needs: [
+                {need: "续航真实", priority: 96}, {need: "安全可靠", priority: 93},
+                {need: "充电便捷", priority: 87}, {need: "智能驾驶", priority: 80},
+                {need: "售后保障", priority: 74}, {need: "性价比", priority: 68}
+            ],
+            customer_segments: [
+                {segment: "环保主义者", percentage: 35, count: 222, needs: ["环保", "续航", "科技"]},
+                {segment: "家庭用户", percentage: 30, count: 190, needs: ["空间", "安全", "舒适"]},
+                {segment: "运营用户", percentage: 20, count: 127, needs: ["成本", "耐用", "续航"]},
+                {segment: "科技极客", percentage: 15, count: 95, needs: ["智驾", "性能", "新功能"]}
+            ],
+            source_coverage: {
+                "微博": {count: 165, percentage: 26, avg_sentiment: -1.2},
+                "知乎": {count: 138, percentage: 22, avg_sentiment: -0.6},
+                "贴吧": {count: 98, percentage: 15, avg_sentiment: -1.5},
+                "黑猫投诉": {count: 88, percentage: 14, avg_sentiment: -2.4},
+                "京东": {count: 72, percentage: 11, avg_sentiment: -0.8},
+                "虎扑": {count: 73, percentage: 12, avg_sentiment: -0.4}
+            }
+        },
+        "食品": {
+            total_records: 845,
+            complaint_distribution: [
+                {type: "质量缺陷", count: 211, percentage: 25},
+                {type: "安全隐患", count: 185, percentage: 22},
+                {type: "价格问题", count: 153, percentage: 18},
+                {type: "服务体验", count: 110, percentage: 13},
+                {type: "功能缺失", count: 85, percentage: 10},
+                {type: "性能问题", count: 59, percentage: 7},
+                {type: "交付问题", count: 42, percentage: 5}
+            ],
+            top_value_needs: [
+                {need: "安全健康", priority: 97}, {need: "新鲜品质", priority: 91},
+                {need: "营养成分", priority: 84}, {need: "价格合理", priority: 78},
+                {need: "口感美味", priority: 72}, {need: "配送及时", priority: 65}
+            ],
+            customer_segments: [
+                {segment: "健康导向型", percentage: 38, count: 321, needs: ["健康", "有机", "无添加"]},
+                {segment: "性价比型", percentage: 32, count: 270, needs: ["便宜", "够吃", "促销"]},
+                {segment: "品质生活型", percentage: 20, count: 169, needs: ["档次", "稀有", "产地"]},
+                {segment: "家庭采购型", percentage: 10, count: 85, needs: ["全家", "量大", "实惠"]}
+            ],
+            source_coverage: {
+                "淘宝": {count: 198, percentage: 23, avg_sentiment: -0.6},
+                "京东": {count: 165, percentage: 20, avg_sentiment: -0.4},
+                "黑猫投诉": {count: 142, percentage: 17, avg_sentiment: -2.3},
+                "12315": {count: 118, percentage: 14, avg_sentiment: -2.0},
+                "拼多多": {count: 98, percentage: 12, avg_sentiment: -0.9},
+                "小红书": {count: 78, percentage: 9, avg_sentiment: -0.2},
+                "微博": {count: 46, percentage: 5, avg_sentiment: -0.5}
+            }
+        },
+        "SaaS": {
+            total_records: 512,
+            complaint_distribution: [
+                {type: "功能缺失", count: 128, percentage: 25},
+                {type: "服务体验", count: 102, percentage: 20},
+                {type: "性能问题", count: 87, percentage: 17},
+                {type: "价格问题", count: 77, percentage: 15},
+                {type: "质量缺陷", count: 61, percentage: 12},
+                {type: "安全隐患", count: 36, percentage: 7},
+                {type: "交付问题", count: 20, percentage: 4}
+            ],
+            top_value_needs: [
+                {need: "功能完善", priority: 94}, {need: "稳定快速", priority: 89},
+                {need: "简单易用", priority: 83}, {need: "数据安全", priority: 78},
+                {need: "价格合理", priority: 72}, {need: "客服响应", priority: 66}
+            ],
+            customer_segments: [
+                {segment: "中小企业主", percentage: 42, count: 215, needs: ["便宜", "好用", "服务"]},
+                {segment: "技术负责人", percentage: 28, count: 143, needs: ["稳定", "API", "集成"]},
+                {segment: "大企业采购", percentage: 18, count: 92, needs: ["安全", "合规", "品牌"]},
+                {segment: "创业团队", percentage: 12, count: 61, needs: ["免费", "够用", "成长"]}
+            ],
+            source_coverage: {
+                "知乎": {count: 142, percentage: 28, avg_sentiment: -0.5},
+                "微博": {count: 98, percentage: 19, avg_sentiment: -0.4},
+                "Reddit": {count: 76, percentage: 15, avg_sentiment: -0.3},
+                "黑猫投诉": {count: 72, percentage: 14, avg_sentiment: -2.1},
+                "Twitter": {count: 62, percentage: 12, avg_sentiment: -0.2},
+                "贴吧": {count: 62, percentage: 12, avg_sentiment: -0.6}
+            }
+        }
+    };
+
+    const LEAN_CANVAS_DATA = {
+        "母婴": {
+            problem: [
+                {title: "质量安全担忧", percentage: 85}, {title: "价格不透明", percentage: 72},
+                {title: "不知道选什么品牌", percentage: 65}, {title: "不知道产品是否正品", percentage: 58}
+            ],
+            solution: ["建立质量溯源体系", "引入专家评测内容", "提供比价工具", "一键查真伪"],
+            unique_value_proposition: "让妈妈买得放心，孩子用得安心",
+            unfair_advantage: ["独家质量评测体系", "专家入驻内容", "用户真实评价社区"],
+            key_metrics: ["复购率", "NPS评分", "专家内容互动率", "质量投诉率"],
+            channels: ["小红书种草", "妈妈群推广", "电商平台", "内容电商"],
+            cost_structure: "内容制作+质控+客服+物流",
+            revenue_streams: ["产品销售佣金", "知识付费", "广告推广", "会员订阅"]
+        },
+        "美妆": {
+            problem: [
+                {title: "不知道适合什么产品", percentage: 88}, {title: "成分不安全", percentage: 76},
+                {title: "效果不明显", percentage: 68}, {title: "买到的产品不适合", percentage: 62}
+            ],
+            solution: ["AI肤质测试", "成分分析对比", "效果可视化", "小样试用"],
+            unique_value_proposition: "找到最适合自己的美妆产品",
+            unfair_advantage: ["AI肤质分析", "真实用户效果数据库", "成分安全预警"],
+            key_metrics: ["转化购买率", "试用转化率", "内容分享率", "复购率"],
+            channels: ["小红书", "抖音", "B站", "微信小程序"],
+            cost_structure: "AI研发+内容制作+小样采购+配送",
+            revenue_streams: ["产品销售分成", "品牌广告", "试用样品", "会员订阅"]
+        },
+        "智能家居": {
+            problem: [
+                {title: "操作复杂难上手", percentage: 82}, {title: "设备之间不兼容", percentage: 75},
+                {title: "隐私安全隐患", percentage: 71}, {title: "稳定性差经常掉线", percentage: 65}
+            ],
+            solution: ["一键配对教程", "跨平台互联方案", "隐私安全报告", "稳定性监控"],
+            unique_value_proposition: "让智能家居真正智能又安全",
+            unfair_advantage: ["跨品牌互联协议", "隐私安全认证", "7x24监控"],
+            key_metrics: ["设备在线率", "问题解决率", "用户满意度", "续费率"],
+            channels: ["知乎测评", "抖音演示", "厂商合作", "花粉俱乐部"],
+            cost_structure: "技术研发+安全认证+客服+服务器",
+            revenue_streams: ["互联解决方案收费", "安全认证服务", "数据洞察", "厂商合作"]
+        },
+        "新能源汽车": {
+            problem: [
+                {title: "续航虚标严重", percentage: 90}, {title: "充电不方便", percentage: 83},
+                {title: "售后推诿", percentage: 72}, {title: "智能功能鸡肋", percentage: 65}
+            ],
+            solution: ["真实续航测试", "充电桩地图+预约", "售后评分机制", "智驾功能评测"],
+            unique_value_proposition: "帮车主选对车、避坑指南",
+            unfair_advantage: ["真实车主评测", "充电桩实时数据", "售后评分体系"],
+            key_metrics: ["内容阅读量", "帮购转化", "充电使用率", "投诉解决率"],
+            channels: ["微博", "知乎", "抖音", "车友群"],
+            cost_structure: "内容制作+数据采集+客服+线下活动",
+            revenue_streams: ["推荐购车佣金", "充电服务分成", "广告", "会员服务"]
+        },
+        "食品": {
+            problem: [
+                {title: "食品安全担忧", percentage: 92}, {title: "不知道是否新鲜", percentage: 78},
+                {title: "营养成分不透明", percentage: 65}, {title: "价格波动大", percentage: 55}
+            ],
+            solution: ["溯源系统", "新鲜度实时监测", "营养成分解读", "价格提醒"],
+            unique_value_proposition: "每一口都吃得明明白白",
+            unfair_advantage: ["全程溯源", "实时新鲜度监测", "营养师解读"],
+            key_metrics: ["扫码率", "溯源查询量", "会员复购", "问题发现率"],
+            channels: ["电商平台", "超市合作", "直播带货", "社区团购"],
+            cost_structure: "溯源系统+检测设备+物流合作+内容制作",
+            revenue_streams: ["溯源服务费", "检测认证费", "优质食品销售", "品牌合作"]
+        },
+        "SaaS": {
+            problem: [
+                {title: "功能学习成本高", percentage: 85}, {title: "客服响应慢", percentage: 76},
+                {title: "数据迁移困难", percentage: 68}, {title: "价格不透明/贵", percentage: 62}
+            ],
+            solution: ["AI客服+操作引导", "7x24在线支持", "一键数据导出", "按需付费模式"],
+            unique_value_proposition: "让企业省心、省钱、真正用起来",
+            unfair_advantage: ["AI辅助功能", "无缝迁移工具", "透明定价"],
+            key_metrics: ["活跃使用率", "客服首次响应时间", "续费率", "NPS"],
+            channels: ["官网SEO", "行业大会", "客户推荐", "应用市场"],
+            cost_structure: "研发+AI算力+客服+服务器+销售",
+            revenue_streams: ["订阅费", "增值功能", "实施服务", "生态分成"]
+        }
+    };
+
+    const PROFIT_MODELS = {
+        "母婴": [
+            {name: "订阅制", desc: "每月寄送宝宝成长所需的精选产品", score: 85, reason: "宝宝成长阶段性强，需要持续性产品供应"},
+            {name: "内容付费", desc: "专家育儿知识、评测、课程", score: 78, reason: "新手妈妈对专业内容需求强烈"},
+            {name: "平台抽佣", desc: "妈妈好物推荐平台，撮合交易", score: 72, reason: "社区口碑推荐转化率高"},
+            {name: "数据服务", desc: "品牌方消费者洞察报告", score: 68, reason: "积累了大量真实母婴消费者数据"}
+        ],
+        "美妆": [
+            {name: "内容电商", desc: "种草内容+测评+购买链接", score: 88, reason: "美妆消费决策严重依赖内容"},
+            {name: "订阅盒", desc: "每月美妆盒子，先试后买", score: 75, reason: "满足尝鲜需求，降低决策风险"},
+            {name: "数据服务", desc: "肤质数据库，驱动精准营销", score: 70, reason: "AI肤质分析数据具有高商业价值"},
+            {name: "免费增值", desc: "基础功能免费，高级功能付费", score: 65, reason: "工具类功能适合免费+增值模式"}
+        ],
+        "智能家居": [
+            {name: "解决方案收费", desc: "智能家居整体方案设计+实施", score: 82, reason: "全屋智能需要专业方案设计"},
+            {name: "数据服务", desc: "设备使用数据，厂商产品改进", score: 76, reason: "海量设备数据指导产品迭代"},
+            {name: "会员订阅", desc: "高级功能、优先客服、延长保修", score: 70, reason: "高价值设备需要持续服务保障"},
+            {name: "平台抽佣", desc: "设备互联平台，撮合不同品牌设备", score: 65, reason: "跨品牌互联需求强，平台价值高"}
+        ],
+        "新能源汽车": [
+            {name: "内容平台", desc: "真实评测、买车指南、充电攻略", score: 85, reason: "购车决策重内容，信息不对称严重"},
+            {name: "买车服务佣金", desc: "带看车、帮谈价、协助购买", score: 80, reason: "高客单价，佣金空间大"},
+            {name: "充电服务", desc: "充电桩预约+积分会员", score: 72, reason: "充电痛点明显，服务价值高"},
+            {name: "数据服务", desc: "真实续航/质量问题数据卖给厂商", score: 65, reason: "车主真实数据对厂商极具价值"}
+        ],
+        "食品": [
+            {name: "溯源认证", desc: "食品安全认证+溯源标签", score: 88, reason: "食品安全是核心痛点，付费意愿强"},
+            {name: "电商销售", desc: "严选食品电商平台", score: 80, reason: "品质背书带来溢价能力"},
+            {name: "检测服务", desc: "食品质量检测服务", score: 72, reason: "B端品牌方检测需求稳定"},
+            {name: "会员订阅", desc: "新鲜食材定期配送", score: 65, reason: "家庭高频需求，会员粘性高"}
+        ],
+        "SaaS": [
+            {name: "订阅制", desc: "月/年订阅，持续软件服务", score: 90, reason: "SaaS行业标准模式，可预测收入"},
+            {name: "免费增值", desc: "免费基础版 + 高级功能付费", score: 82, reason: "降低获客门槛，提高转化率"},
+            {name: "平台抽佣", desc: "应用市场+模板市场", score: 65, reason: "生态伙伴带来额外收入"},
+            {name: "实施服务", desc: "企业定制实施服务", score: 60, reason: "大型企业需要定制服务"}
+        ]
+    };
+
+    function selectIndustry(name) {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('keyword').value = name;
+    }
+
+    function analyze() {
+        const keyword = document.getElementById('keyword').value.trim() || '母婴';
+        const data = MOCK_DATA[keyword] || MOCK_DATA['母婴'];
+        const canvas = LEAN_CANVAS_DATA[keyword] || LEAN_CANVAS_DATA['母婴'];
+        const profits = PROFIT_MODELS[keyword] || PROFIT_MODELS['SaaS'];
+
+        document.getElementById('results').classList.remove('hidden');
+
+        // 抱怨分布
+        document.getElementById('total-records').textContent = data.total_records + '条数据';
+        const distEl = document.getElementById('complaint-dist');
+        distEl.innerHTML = data.complaint_distribution.map(c => `
+            <div class="complaint-item">
+                <div class="type">${c.type}</div>
+                <div class="bar"><div class="bar-fill" style="width:${c.percentage}%"></div></div>
+                <div class="stats"><span>${c.count}条</span><span class="percentage">${c.percentage}%</span></div>
+            </div>`).join('');
+
+        // 价值需求
+        document.getElementById('value-needs').innerHTML = data.top_value_needs.map(n => `
+            <div class="need-tag"><span>${n.need}</span><span class="priority">${n.priority}</span></div>`).join('');
+
+        // 客户细分
+        document.getElementById('customer-segments').innerHTML = data.customer_segments.map(s => `
+            <div class="segment-tag">
+                <div class="seg-name">${s.segment}</div>
+                <div class="seg-pct">${s.percentage}%</div>
+                <div class="seg-label">${s.count}条记录</div>
+            </div>`).join('');
+
+        // 数据源
+        document.getElementById('sources-count').textContent = Object.keys(data.source_coverage).length + '个数据源';
+        document.getElementById('source-coverage').innerHTML = Object.entries(data.source_coverage).map(([name, d]) => `
+            <div class="source-item">
+                <div class="source-name">${name}</div>
+                <div class="source-count">${d.count}</div>
+                <div class="source-pct">${d.percentage}%</div>
+                <div class="source-sentiment ${d.avg_sentiment > 0 ? 'positive' : d.avg_sentiment < 0 ? 'negative' : 'neutral'}">
+                    ${d.avg_sentiment > 0 ? '+' : ''}${d.avg_sentiment.toFixed(1)}
+                </div>
+            </div>`).join('');
+
+        // 精益画布
+        document.getElementById('lean-score').textContent = '82分';
+        const problemItems = canvas.problem.map(p => `<li>${p.title} (${p.percentage}%)</li>`).join('');
+        const solutionItems = canvas.solution.map(s => `<li>${s}</li>`).join('');
+        const advantageItems = canvas.unfair_advantage.map(a => `<li>${a}</li>`).join('');
+        const metricItems = canvas.key_metrics.map(m => `<li>${m}</li>`).join('');
+        const channelItems = canvas.channels.map(c => `<li>${c}</li>`).join('');
+        const revenueItems = canvas.revenue_streams.map(r => `<li>${r}</li>`).join('');
+
+        document.getElementById('lean-canvas').innerHTML = `
+            <div class="canvas-cell"><h4>问题</h4><ul>${problemItems}</ul></div>
+            <div class="canvas-cell"><h4>解决方案</h4><ul>${solutionItems}</ul></div>
+            <div class="canvas-cell"><h4>独特价值主张</h4><p>${canvas.unique_value_proposition}</p></div>
+            <div class="canvas-cell"><h4>门槛优势</h4><ul>${advantageItems}</ul></div>
+            <div class="canvas-cell"><h4>关键指标</h4><ul>${metricItems}</ul></div>
+            <div class="canvas-cell"><h4>渠道</h4><ul>${channelItems}</ul></div>
+            <div class="canvas-cell"><h4>成本结构</h4><p>${canvas.cost_structure}</p></div>
+            <div class="canvas-cell"><h4>收入来源</h4><ul>${revenueItems}</ul></div>`;
+
+        // 商业模式画布 (复用精益画布数据演示)
+        document.getElementById('bmc-canvas').innerHTML = document.getElementById('lean-canvas').innerHTML;
+
+        // 变现模式
+        document.getElementById('profit-models').innerHTML = profits.map(p => `
+            <div class="model-card">
+                <div class="model-name">${p.name}</div>
+                <div class="model-desc">${p.desc}</div>
+                <span class="model-score">匹配度 ${p.score}</span>
+                <div class="model-reason">💡 ${p.reason}</div>
+            </div>`).join('');
+
+        // 单位经济估算（订阅制假设）
+        const mrr = 99 * 1000 * 0.85;
+        const arr = mrr * 12;
+        const ltv = 99 * 0.85 / 0.15;
+        const cac = 300;
+        const ratio = ltv / cac;
+        const breakeven = Math.round(cac / (99 * 0.5));
+
+        document.getElementById('econ-mrr').textContent = '¥' + (mrr / 10000).toFixed(1) + '万';
+        document.getElementById('econ-arr').textContent = '¥' + (arr / 10000).toFixed(1) + '万';
+        document.getElementById('econ-ltv').textContent = '¥' + Math.round(ltv);
+        document.getElementById('econ-cac').textContent = '¥' + cac;
+        document.getElementById('econ-ratio').textContent = ratio.toFixed(1) + 'x';
+        document.getElementById('econ-breakeven').textContent = breakeven + '人';
+    }
+
+    function switchTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.results').forEach(r => r.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById(tab).classList.add('active');
+    }
+
+    // 自动加载母婴数据演示
+    window.addEventListener('load', function() {
+        setTimeout(analyze, 500);
+    });
+    </script>
+</body>
+</html>

@@ -1,0 +1,22 @@
+scrapy_settings:
+  USER_AGENT: "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+  ROBOTSTXT_OBEY: false
+  CONCURRENT_REQUESTS: 4
+  DOWNLOAD_DELAY: 2
+  COOKIES_ENABLED: true
+
+proxy_pools:
+  enabled: false
+  provider: ""
+  api_key: ""
+
+rate_limits:
+  taobao:
+    requests_per_minute: 10
+    burst: 20
+  jd:
+    requests_per_minute: 15
+    burst: 30
+  weibo:
+    requests_per_minute: 5
+    burst: 10
