@@ -47,24 +47,23 @@ jobs:
         run: |
           flutter pub get
           if [ ! -d "android" ]; then
+            echo 'Creating android platform...'
             flutter create --platforms=android .
           fi
-          echo "=== Flutter Doctor ==="
+          echo '=== Accepting Android licenses ==='
+          yes | flutter doctor --android-licenses 2>/dev/null || true
+          echo '=== Flutter Doctor ==='
           flutter doctor 2>&1
-          echo "=== ANDROID_HOME ==="
+          echo '=== ANDROID_HOME ==='
           echo $ANDROID_HOME
-          echo "=== JAVA_HOME ==="
-          echo $JAVA_HOME
+          ls -la android/ 2>/dev/null | head -5
 
       - name: Build debug APK
         working-directory: ./frontend
         run: |
           set -o pipefail
           flutter build apk --debug 2>&1
-          EXIT_CODE=$?
-          echo "EXIT_CODE=$EXIT_CODE"
-          find . -name "*.apk" -type f 2>/dev/null || echo "NO APK FOUND"
-          exit $EXIT_CODE
+          find . -name "*.apk" -type f 2>/dev/null
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
@@ -94,16 +93,14 @@ jobs:
           if [ ! -d "android" ]; then
             flutter create --platforms=android .
           fi
+          yes | flutter doctor --android-licenses 2>/dev/null || true
 
       - name: Build release APK
         working-directory: ./frontend
         run: |
           set -o pipefail
           flutter build apk --release 2>&1
-          EXIT_CODE=$?
-          echo "EXIT_CODE=$EXIT_CODE"
-          find . -name "*.apk" -type f 2>/dev/null || echo "NO APK FOUND"
-          exit $EXIT_CODE
+          find . -name "*.apk" -type f 2>/dev/null
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4
