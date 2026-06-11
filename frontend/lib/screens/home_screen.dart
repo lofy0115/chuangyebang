@@ -3,6 +3,7 @@ import '../widgets/search_box.dart';
 import 'analysis_result_screen.dart';
 import 'lean_canvas_screen.dart';
 import 'business_canvas_screen.dart';
+import 'data_sources_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
