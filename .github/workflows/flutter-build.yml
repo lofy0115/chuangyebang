@@ -26,16 +26,8 @@ jobs:
 
       - name: Analyze code
         working-directory: ./frontend
-        run: flutter analyze --no-fatal-warnings 2>&1 | tee analyze.log
+        run: flutter analyze 2>&1
         continue-on-error: true
-
-      - name: Upload analyze log
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: analyze-log
-          path: frontend/analyze.log
-          retention-days: 1
 
   build:
     runs-on: ubuntu-latest
@@ -54,17 +46,26 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: flutter pub get
+        run: |
+          flutter pub get
+          flutter doctor -v 2>&1 | head -40
 
       - name: Build debug APK
         working-directory: ./frontend
-        run: flutter build apk --debug 2>&1 | tee build.log
+        run: |
+          flutter build apk --debug 2>&1
+          echo "---APK FILES---"
+          find . -name "*.apk" -type f 2>/dev/null
 
       - name: Build release APK
         working-directory: ./frontend
-        run: flutter build apk --release --target-platform android-arm64 2>&1 | tee release.log
+        run: |
+          flutter build apk --release 2>&1
+          echo "---APK FILES---"
+          find . -name "*.apk" -type f 2>/dev/null
 
       - name: Upload debug APK
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: debug-apk
@@ -72,20 +73,11 @@ jobs:
           retention-days: 14
 
       - name: Upload release APK
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: release-apk
           path: frontend/build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 14
-
-      - name: Upload build logs
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: build-logs
-          path: |
-            frontend/build.log
-            frontend/release.log
           retention-days: 14
 
   build-web:
@@ -106,9 +98,13 @@ jobs:
 
       - name: Build web
         working-directory: ./frontend
-        run: flutter build web --release 2>&1 | tee web.log
+        run: |
+          flutter build web --release 2>&1
+          echo "---WEB FILES---"
+          ls -la build/web/ 2>/dev/null | head -10
 
       - name: Upload web build
+        if: runner.os == 'Linux'
         uses: actions/upload-artifact@v4
         with:
           name: web-build
