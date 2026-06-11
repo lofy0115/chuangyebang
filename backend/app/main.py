@@ -4,6 +4,7 @@ from app.api.routes import router as api_router
 from app.api.business_routes import router as business_router
 from app.api.vector_routes import router as vector_router
 from app.api.monetization_routes import router as monetization_router
+from app.api.workflow_routes import router as workflow_router
 from app.core.config import settings
 
 app = FastAPI(
@@ -24,6 +25,7 @@ app.include_router(api_router, prefix="/api", tags=["分析"])
 app.include_router(business_router, prefix="/api", tags=["商业模式"])
 app.include_router(vector_router, prefix="/api", tags=["向量分析"])
 app.include_router(monetization_router, prefix="/api", tags=["变现模式"])
+app.include_router(workflow_router, prefix="/api", tags=["工作流"])
 
 @app.get("/")
 def root():
