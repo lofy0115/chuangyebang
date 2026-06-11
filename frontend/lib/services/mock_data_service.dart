@@ -2,6 +2,7 @@ import '../models/analysis_result.dart';
 import '../models/complaint_type.dart';
 import '../models/customer_segment.dart';
 import '../models/business_canvas.dart';
+import '../models/lean_canvas.dart';
 
 class MockDataService {
   static AnalysisResult getMockAnalysis(String query) {
@@ -109,14 +110,13 @@ class MockDataService {
       customerSegments: baseAnalysis.customerSegments,
       dataSourceCoverage: baseAnalysis.dataSourceCoverage,
       summary: baseAnalysis.summary,
-      businessCanvas: BusinessCanvas(
+      leanCanvas: LeanCanvas(
         problem: '消费者抱怨配送慢、质量差、价格高',
         solution: '建立快速配送网络+严格品控+动态定价',
         keyMetrics: '配送时效,用户满意度,复购率',
         uniqueValue: '30分钟送达,品质保障,价格最优',
         unfairAdvantage: '自建物流体系,供应链整合',
         channels: 'APP,微信小程序,线下门店',
-        customerSegments: '年轻上班族,家庭主妇',
         costStructure: '物流成本,人力成本,营销成本',
         revenueStreams: '商品销售,会员费,广告收入',
       ),
