@@ -46,6 +46,10 @@ jobs:
         working-directory: ./frontend
         run: |
           flutter pub get
+          if [ ! -d "android" ]; then
+            echo "Creating android platform..."
+            flutter create --platforms=android .
+          fi
           echo "=== Flutter Doctor ==="
           flutter doctor -v 2>&1 | head -50
 
@@ -86,7 +90,12 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./frontend
-        run: flutter pub get
+        run: |
+          flutter pub get
+          if [ ! -d "android" ]; then
+            echo "Creating android platform..."
+            flutter create --platforms=android .
+          fi
 
       - name: Build release APK
         working-directory: ./frontend
