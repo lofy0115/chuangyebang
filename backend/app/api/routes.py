@@ -15,16 +15,12 @@ def get_complaint_types():
 
 @router.post("/analyze", response_model=AnalyzeResponse)
 def analyze_industry(request: AnalyzeRequest):
-    """标准分析接口（使用模拟数据，快速响应）"""
+    """标准分析接口 - 任意关键词都可分析，返回智能分类结果和高价值痛点"""
     if not request.keyword or len(request.keyword.strip()) < 2:
         raise HTTPException(status_code=400, detail="关键词长度至少2个字符")
 
     service = AnalysisService()
-    result = service.analyze_industry(request.keyword)
-
-    if result is None:
-        raise HTTPException(status_code=404, detail=f"未找到与「{request.keyword}」相关的行业数据")
-
+    result = service.analyze_industry(request.keyword.strip())
     return result
 
 @router.post("/analyze/deep")
@@ -37,33 +33,28 @@ def analyze_industry_deep(request: AnalyzeRequest):
         raise HTTPException(status_code=400, detail="关键词长度至少2个字符")
 
     try:
-        result = collect_and_analyze_sync(request.keyword, max_per_source=100)
+        result = collect_and_analyze_sync(request.keyword.strip(), max_per_source=100)
         return result
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"深度分析失败: {str(e)}")
 
 @router.get("/data-sources")
 def get_data_sources():
-    """
-    获取支持的数据源列表及权重配置
-    这是创业帮数据客观性的核心：多源交叉验证
-    """
-    from app.spiders.aggregator import DataAggregator
-    agg = DataAggregator()
-
-    sources = []
-    for name, weight in DataAggregator.SOURCE_WEIGHTS.items():
-        spider_class = DataAggregator.SPIDER_REGISTRY.get(name)
-        status = "active" if spider_class else "planned"
-        sources.append({
-            "id": name,
-            "weight": weight,
-            "status": status,
-            "description": "已接入" if status == "active" else "规划中"
-        })
-
+    """获取支持的数据源列表"""
+    from app.datasources.datasource_manager import DataSourceManager
+    mgr = DataSourceManager()
+    raw = mgr.get_all()
+    sources = [
+        {
+            "id": k,
+            "name": v.name,
+            "type": getattr(v, 'type', 'unknown'),
+            "enabled": getattr(v, 'enabled', True),
+        }
+        for k, v in raw.items()
+    ]
     return {
         "sources": sources,
-        "total_weight": sum(s["weight"] for s in sources),
-        "note": "数据权重反映该来源的可信度和客观性，投诉平台权重较高因为抱怨强度真实"
+        "total": len(sources),
+        "note": "免费数据源无需认证可直接使用，付费/API数据源需要配置相应凭证"
     }
