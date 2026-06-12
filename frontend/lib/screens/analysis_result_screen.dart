@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/analysis_result.dart';
+import '../models/complaint_type.dart';
 import '../models/pain_point.dart';
 import '../services/api_service.dart';
 import '../widgets/complaint_chart.dart';
