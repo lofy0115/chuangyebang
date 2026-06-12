@@ -36,7 +36,7 @@ class _AnalysisResultScreenState extends State<AnalysisResultScreen> {
     });
 
     try {
-      final data = await ApiService.analyzeKeyword(widget.query);
+      final data = await ApiService().analyzeKeyword(widget.query);
       if (mounted) {
         setState(() {
           _result = AnalysisResult.fromApiJson(data, widget.query);

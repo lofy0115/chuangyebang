@@ -1,47 +1,6 @@
 import 'pain_point.dart';
 import 'customer_segment.dart';
-
-class ComplaintType {
-  final String id;
-  final String name;
-  final String description;
-  final int count;
-  final double percentage;
-  final List<String> relatedProducts;
-  final List<String> suggestions;
-
-  ComplaintType({
-    required this.id,
-    required this.name,
-    required this.description,
-    required this.count,
-    required this.percentage,
-    this.relatedProducts = const [],
-    this.suggestions = const [],
-  });
-
-  factory ComplaintType.fromJson(Map<String, dynamic> json) {
-    return ComplaintType(
-      id: json['id'] ?? json['type'] ?? '',
-      name: json['name'] ?? json['type'] ?? '',
-      description: json['description'] ?? '',
-      count: json['count'] ?? 0,
-      percentage: (json['percentage'] ?? 0).toDouble(),
-      relatedProducts: List<String>.from(json['related_products'] ?? []),
-      suggestions: List<String>.from(json['suggestions'] ?? []),
-    );
-  }
-
-  Map<String, dynamic> toJson() => {
-        'id': id,
-        'name': name,
-        'description': description,
-        'count': count,
-        'percentage': percentage,
-        'related_products': relatedProducts,
-        'suggestions': suggestions,
-      };
-}
+import 'complaint_type.dart';
 
 class AnalysisResult {
   final String id;
@@ -81,13 +40,7 @@ class AnalysisResult {
       totalRecords: json['total_records'] ?? 0,
       avgSentiment: (json['avg_sentiment'] ?? 0).toDouble(),
       complaintTypes: complaintDist
-          .map((e) => ComplaintType(
-                id: e['type'] ?? '',
-                name: e['type'] ?? '',
-                description: '',
-                count: e['count'] ?? 0,
-                percentage: (e['percentage'] ?? 0).toDouble(),
-              ))
+          .map((e) => ComplaintType.fromJson(e))
           .toList(),
       topValueNeeds: topNeeds.map((e) => PainPoint.fromJson(e)).toList(),
       customerSegments:
