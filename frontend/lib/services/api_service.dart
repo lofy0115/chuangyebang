@@ -8,7 +8,8 @@ class ApiService {
 
   ApiService({http.Client? client}) : _client = client ?? http.Client();
 
-  Future<Map<String, dynamic>> analyzeComplaints(String keyword) async {
+  // 分析关键词，返回真实API数据
+  Future<Map<String, dynamic>> analyzeKeyword(String keyword) async {
     try {
       final response = await _client
           .post(
@@ -25,8 +26,13 @@ class ApiService {
       }
     } catch (e) {
       if (e is ApiException) rethrow;
-      throw ApiException('网络错误: $e');
+      throw ApiException('网络错误，请检查后台服务是否启动: $e');
     }
+  }
+
+  // 保留旧方法名兼容
+  Future<Map<String, dynamic>> analyzeComplaints(String keyword) async {
+    return analyzeKeyword(keyword);
   }
 
   Future<Map<String, dynamic>> analyzeDeep(String keyword) async {

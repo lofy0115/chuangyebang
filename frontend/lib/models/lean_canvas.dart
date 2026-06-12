@@ -1,12 +1,12 @@
 class LeanCanvas {
-  final String problem;
-  final String solution;
+  final List<String> problem;
+  final List<String> solution;
   final String uniqueValue;
-  final String unfairAdvantage;
-  final String keyMetrics;
-  final String channels;
+  final List<String> unfairAdvantage;
+  final List<String> keyMetrics;
+  final List<String> channels;
   final String costStructure;
-  final String revenueStreams;
+  final List<String> revenueStreams;
 
   LeanCanvas({
     required this.problem,
@@ -19,29 +19,34 @@ class LeanCanvas {
     required this.revenueStreams,
   });
 
-  factory LeanCanvas.fromJson(Map<String, dynamic> json) {
+  factory LeanCanvas.fromApiJson(Map<String, dynamic> json) {
     return LeanCanvas(
-      problem: json['problem'] ?? '',
-      solution: json['solution'] ?? '',
+      problem: _toStringList(json['problem']),
+      solution: _toStringList(json['solution']),
       uniqueValue: json['unique_value'] ?? '',
-      unfairAdvantage: json['unfair_advantage'] ?? '',
-      keyMetrics: json['key_metrics'] ?? '',
-      channels: json['channels'] ?? '',
+      unfairAdvantage: _toStringList(json['unfair_advantage']),
+      keyMetrics: _toStringList(json['key_metrics']),
+      channels: _toStringList(json['channels']),
       costStructure: json['cost_structure'] ?? '',
-      revenueStreams: json['revenue_streams'] ?? '',
+      revenueStreams: _toStringList(json['revenue_streams']),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'problem': problem,
-      'solution': solution,
-      'unique_value': uniqueValue,
-      'unfair_advantage': unfairAdvantage,
-      'key_metrics': keyMetrics,
-      'channels': channels,
-      'cost_structure': costStructure,
-      'revenue_streams': revenueStreams,
-    };
+  static List<String> _toStringList(dynamic value) {
+    if (value == null) return [];
+    if (value is List) return value.map((e) => e.toString()).toList();
+    if (value is String) return value.split('\n').where((s) => s.trim().isNotEmpty).toList();
+    return [];
   }
+
+  Map<String, dynamic> toJson() => {
+        'problem': problem,
+        'solution': solution,
+        'unique_value': uniqueValue,
+        'unfair_advantage': unfairAdvantage,
+        'key_metrics': keyMetrics,
+        'channels': channels,
+        'cost_structure': costStructure,
+        'revenue_streams': revenueStreams,
+      };
 }

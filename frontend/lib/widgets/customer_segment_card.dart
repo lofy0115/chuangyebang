@@ -38,29 +38,41 @@ class CustomerSegmentCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Spacer(),
-                Text(
-                  '${(segment.size / 1000000).toStringAsFixed(1)}M用户',
-                  style: TextStyle(
-                    color: Colors.grey.shade400,
-                    fontSize: 12,
+                if (segment.size > 0) ...[
+                  const Spacer(),
+                  Text(
+                    '${(segment.size / 1000000).toStringAsFixed(1)}M用户',
+                    style: TextStyle(
+                      color: Colors.grey.shade400,
+                      fontSize: 12,
+                    ),
                   ),
-                ),
+                ],
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              segment.description,
-              style: const TextStyle(fontSize: 14),
-            ),
-            const SizedBox(height: 12),
-            _buildInfoRow('月均消费', '¥${segment.spending.toStringAsFixed(0)}'),
-            const SizedBox(height: 8),
-            _buildTags('痛点', segment.painPoints),
-            const SizedBox(height: 8),
-            _buildTags('需求', segment.needs),
-            const SizedBox(height: 8),
-            _buildInfoRow('行为特征', segment.behaviorPattern),
+            if (segment.description.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              Text(
+                segment.description,
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+            if (segment.spending > 0) ...[
+              const SizedBox(height: 8),
+              _buildInfoRow('月均消费', '¥${segment.spending.toStringAsFixed(0)}'),
+            ],
+            if (segment.needs.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildTags('需求', segment.needs),
+            ],
+            if (segment.painPoints.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildTags('痛点', segment.painPoints),
+            ],
+            if (segment.behaviorPattern.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              _buildInfoRow('行为特征', segment.behaviorPattern),
+            ],
           ],
         ),
       ),

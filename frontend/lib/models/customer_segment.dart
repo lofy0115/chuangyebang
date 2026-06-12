@@ -19,6 +19,20 @@ class CustomerSegment {
     this.behaviorPattern = '',
   });
 
+  // 从API新格式解析（segment字段）
+  factory CustomerSegment.fromApiJson(Map<String, dynamic> json) {
+    return CustomerSegment(
+      id: json['id'] ?? json['segment'] ?? '',
+      name: json['name'] ?? json['segment'] ?? '',
+      description: json['description'] ?? '',
+      size: json['size'] ?? 0,
+      spending: (json['spending'] ?? 0).toDouble(),
+      painPoints: List<String>.from(json['pain_points'] ?? []),
+      needs: List<String>.from(json['needs'] ?? []),
+      behaviorPattern: json['behavior_pattern'] ?? '',
+    );
+  }
+
   factory CustomerSegment.fromJson(Map<String, dynamic> json) {
     return CustomerSegment(
       id: json['id'] ?? '',
